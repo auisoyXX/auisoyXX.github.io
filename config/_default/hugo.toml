@@ -72,3 +72,7 @@ enableEmoji = true
   startLevel = 2
   endLevel = 4
   ordered = false
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'

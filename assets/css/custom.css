@@ -1,0 +1,461 @@
+/* ==========================================================================
+   Blowfish 自定义首页样式（assets/css/custom.css）
+
+   说明：
+   · 本文件由主题 head.html 自动加载，且排在主题样式之后，
+     因此这里的规则会覆盖主题默认样式。
+   · 本文件是普通 CSS（不会经过 Tailwind 编译），因此不能使用 @apply。
+   · 颜色复用主题配色方案的 CSS 变量（--color-neutral-* / --color-primary-*），
+     这些变量在 css/schemes/*.css 中定义（RGB 三元组），
+     深色模式通过 html.dark 选择器切换。
+   ========================================================================== */
+
+/* 让全宽 Hero 突破 body 的 max-w-7xl 容器时，不产生横向滚动条。
+   使用 clip 而非 hidden：clip 不会创建新的滚动容器，
+   因此不影响主题内 position: sticky 的元素（如文章页目录）。 */
+html {
+  overflow-x: clip;
+}
+
+/* --------------------------------------------------------------------------
+   语义化配色（浅色 / 深色自动适配）
+   -------------------------------------------------------------------------- */
+.home-custom {
+  --hc-card-bg: rgb(var(--color-neutral-50));
+  --hc-card-border: rgb(var(--color-neutral-200));
+  --hc-text: rgb(var(--color-neutral-800));
+  --hc-text-strong: rgb(var(--color-neutral-900));
+  --hc-text-muted: rgb(var(--color-neutral-500));
+  --hc-accent: rgb(var(--color-primary-600));
+}
+
+html.dark .home-custom {
+  --hc-card-bg: rgb(var(--color-neutral-900));
+  --hc-card-border: rgb(var(--color-neutral-700));
+  --hc-text: rgb(var(--color-neutral-200));
+  --hc-text-strong: rgb(var(--color-neutral-50));
+  --hc-text-muted: rgb(var(--color-neutral-400));
+  --hc-accent: rgb(var(--color-primary-400));
+}
+
+/* --------------------------------------------------------------------------
+   首屏 Hero
+   -------------------------------------------------------------------------- */
+.home-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  left: 50%;
+  transform: translateX(-50%);
+  /* 抵消 floating header 的 min-h-32 (8rem) 占位，使 Hero 顶到视口最上方。
+     若改用其它 header.layout，请同步调整此负边距。 */
+  margin-top: -8rem;
+  min-height: 100vh;
+  min-height: 100svh;
+  text-align: center;
+  color: #fff;
+}
+
+.home-hero__bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.home-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* 适度暗色渐变遮罩：顶部/底部略深，保证文字与后续内容衔接清晰 */
+.home-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 12, 16, 0.55) 0%,
+    rgba(10, 12, 16, 0.35) 50%,
+    rgba(10, 12, 16, 0.75) 100%
+  );
+}
+
+.home-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 46rem;
+  padding: 2rem 1.5rem;
+}
+
+.home-hero__eyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.home-hero__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.home-hero__subtitle {
+  margin: 1.25rem auto 0;
+  max-width: 38rem;
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.home-hero__cta {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.7rem 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.home-hero__cta:hover {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.92);
+  color: #111;
+}
+
+/* 向下滚动提示：一个轻微浮动的下箭头 */
+.home-hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 1.75rem;
+  z-index: 1;
+  transform: translateX(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.25s ease;
+}
+
+.home-hero__scroll:hover {
+  color: #fff;
+}
+
+.home-hero__scroll-chevron {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-hero__scroll-chevron::before {
+  content: "";
+  display: block;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0 auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  animation: home-scroll-bounce 2s ease-in-out infinite;
+}
+
+@keyframes home-scroll-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(45deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(0.4rem) rotate(45deg);
+    opacity: 0.5;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   近期文章区
+   -------------------------------------------------------------------------- */
+.home-articles {
+  padding: 4.5rem 0 5rem;
+}
+
+.home-articles__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.home-articles__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--hc-text-strong);
+}
+
+.home-articles__all {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--hc-accent);
+  text-decoration: none;
+}
+
+.home-articles__all:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.home-articles__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .home-articles__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-articles__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.home-articles__empty {
+  margin: 0;
+  padding: 2.5rem 0;
+  color: var(--hc-text-muted);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
+   文章卡片
+   -------------------------------------------------------------------------- */
+.home-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--hc-card-border);
+  border-radius: 0.75rem;
+  background-color: var(--hc-card-bg);
+  transition: transform 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.home-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--hc-accent);
+  box-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.35);
+}
+
+.home-card__meta {
+  display: flex;
+  align-items: center;
+}
+
+.home-card__date {
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--hc-text-muted);
+}
+
+.home-card__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.home-card__title a {
+  color: var(--hc-text-strong);
+  text-decoration: none;
+}
+
+/* 让整张卡片可点击：标题链接的伪元素铺满卡片 */
+.home-card__title a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.home-card__title a:hover {
+  color: var(--hc-accent);
+}
+
+.home-card__summary {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--hc-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-card__taxonomies {
+  position: relative;
+  z-index: 1; /* 位于标题链接铺层之上，保证分类/标签可单独点击 */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.home-card__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--hc-card-border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-decoration: none;
+  color: var(--hc-text-muted);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.home-card__chip:hover {
+  color: var(--hc-accent);
+  border-color: var(--hc-accent);
+}
+
+.home-card__chip--category {
+  color: var(--hc-accent);
+  border-color: var(--hc-accent);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   滚动淡入（由 assets/js/home.js 触发）
+   -------------------------------------------------------------------------- */
+.home-reveal-active [data-home-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.home-reveal-active [data-home-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 尊重系统“减弱动态效果”偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .home-hero__scroll-chevron::before {
+    animation: none;
+  }
+  .home-reveal-active [data-home-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .home-card {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   About 个人资料栏
+   ========================================================================== */
+
+
+
+.about-sidebar {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+
+  text-align: left;
+}
+
+.about-avatar {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 0 1.5rem;
+
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.about-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.about-description {
+  margin: 0.5rem 0 1.25rem;
+  color: #d7d5d5;
+  font-size: 0.95rem;
+}
+
+.about-tags span {
+  padding: 0.3rem 0.7rem;
+
+  border: 1px solid #b8bdc3;
+  border-radius: 999px;
+
+  font-size: 0.95rem;
+  color: #0c0c0c;
+  background-color: #e5e7e9;
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.about-links a {
+  color: #c5c2c2;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.about-links a:hover {
+  color: #1b84ee;
+  text-decoration: underline;
+}
+
+.about-page {
+  display: grid;
+  grid-template-columns: 240px 1px minmax(0, 1fr);
+  gap: 2rem;
+
+  /* 其他原有属性保持不变 */
+}
+
+.about-divider {
+  width: 1px;
+  height: 100%;
+  background-color: #5b5d60;
+}
+
+.about-content h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}

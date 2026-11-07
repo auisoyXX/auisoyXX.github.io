@@ -1,0 +1,149 @@
+{{/* ==========================================================================
+   自定义首页（Blowfish custom layout）
+
+   启用方式（config/_default/params.toml）：
+     [homepage] layout      = "custom"   ← index.html 据此渲染本文件
+     [homepage] showRecent  = false      ← 必须为 false：index.html 在本文件
+                                            之后会再渲染一次 recent-articles/main.html，
+                                            置 false 可避免文章列表出现两次
+
+   说明：
+     · 本文件被注入到主题 baseof.html 的 <main> 内容区，不要重复包裹 <main>。
+     · 背景图通过 Hugo 资源管道 resources.Get 加载本地 assets 资源，
+       路径取自 homepage.homepageImage，不写死外部 URL。
+     · 近期文章从 .Site.RegularPages 动态查询，不写死内容。
+   ========================================================================== */}}
+
+{{/* ---------- 1. 数据准备 ---------- */}}
+
+{{/* 首屏背景图：读取配置中的本地资源；仅当宽度超过 1920 时才压缩，避免放大、提升首屏性能 */}}
+{{ $heroImage := "" }}
+{{ with .Site.Params.homepage.homepageImage }}
+  {{ $heroImage = resources.Get . }}
+{{ end }}
+{{ $heroFinal := $heroImage }}
+{{ if and $heroImage (not .Site.Params.disableImageOptimization) (ne $heroImage.MediaType.SubType "svg") }}
+  {{ if gt $heroImage.Width 1920 }}
+    {{ with try ($heroImage.Resize "1920x q80") }}
+      {{ with .Value }}{{ $heroFinal = . }}{{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* 近期文章：默认 mainSections = ["posts"]，按日期倒序取前 N 篇 */}}
+{{ $mainSections := .Site.Params.mainSections | default (slice "posts") }}
+{{ $recentCount := .Site.Params.homepage.showRecentItems | default 6 }}
+{{ $recent := first $recentCount (where .Site.RegularPages "Type" "in" $mainSections) }}
+
+{{/* “查看全部文章”入口目标，复用主题参数 */}}
+{{ $allPostsURL := .Site.Params.homepage.showMoreLinkDest | default "/posts/" }}
+
+{{/* ---------- 2. 页面结构 ---------- */}}
+
+<div class="home-custom">
+
+  {{/* 首屏 Hero：全宽背景图 + 暗色渐变遮罩 + 站点标题/简介 + 向下滚动提示 */}}
+  <section class="home-hero">
+    {{ if $heroFinal }}
+      <div class="home-hero__bg" aria-hidden="true">
+        <img
+          src="{{ $heroFinal.RelPermalink }}"
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high" />
+        <div class="home-hero__overlay"></div>
+      </div>
+    {{ end }}
+
+    <div class="home-hero__content">
+      {{ with .Site.Params.Author.headline }}
+        <p class="home-hero__eyebrow">{{ . | markdownify }}</p>
+      {{ end }}
+      <h1 class="home-hero__title">
+        {{ .Site.Title | default .Site.Params.Author.name | emojify }}
+      </h1>
+      {{ $intro := .Site.Params.description | default .Site.Params.Author.bio }}
+      {{ with $intro }}
+        <p class="home-hero__subtitle">{{ . | markdownify }}</p>
+      {{ end }}
+      <a class="home-hero__cta" href="{{ $allPostsURL | relLangURL }}">阅读文章</a>
+    </div>
+
+    {{ if $recent }}
+      <a class="home-hero__scroll" href="#home-articles" aria-label="向下滚动查看文章">
+        <span class="home-hero__scroll-chevron" aria-hidden="true"></span>
+      </a>
+    {{ end }}
+  </section>
+
+  {{/* 近期文章区：动态渲染最近 N 篇文章的标题 / 日期 / 摘要 / 分类 / 标签 */}}
+  <section id="home-articles" class="home-articles">
+    <div class="home-articles__inner">
+      <header class="home-articles__header">
+        <h2 class="home-articles__title">{{ i18n "shortcode.recent_articles" | emojify }}</h2>
+        <a class="home-articles__all" href="{{ $allPostsURL | relLangURL }}">
+          {{ i18n "recent.show_more" }} &rarr;
+        </a>
+      </header>
+
+      {{ if $recent }}
+        <div class="home-articles__grid" data-home-reveal-wrap>
+          {{ range $recent }}
+            <article class="home-card" data-home-reveal>
+              <header class="home-card__meta">
+                {{/* 日期使用主题的 functions/date.html，自动套用语言配置的日期格式 */}}
+                <time class="home-card__date" datetime="{{ .Date | time.Format "2006-01-02" }}">
+                  {{ partial "functions/date.html" .Date }}
+                </time>
+              </header>
+
+              <h3 class="home-card__title">
+                <a href="{{ .RelPermalink }}">{{ .Title | emojify }}</a>
+              </h3>
+
+              {{/* 摘要：优先 front matter summary，其次 Hugo 自动摘要，最后渲染正文后截取。 */}}
+              {{ $summary := .Params.summary }}
+              {{ if not $summary }}
+                {{ $summary = .Summary | plainify }}
+              {{ end }}
+              {{ if not $summary }}
+                {{ $summary = .Content | plainify }}
+              {{ end }}
+              {{/* 非手写摘要时：清除 Blowfish 标题自带的 # 锚点符号，折叠空白并截断 */}}
+              {{ if not (.Params.summary) }}
+                {{ $summary = $summary | replaceRE `#\s+` "" | replaceRE `\s+` " " | truncate 140 }}
+              {{ end }}
+              {{ with $summary }}
+                <p class="home-card__summary">{{ . }}</p>
+              {{ end }}
+
+              {{/* 分类与标签：从页面 taxonomy 动态获取，可点击进入对应分类/标签页 */}}
+              {{ $categories := .GetTerms "categories" }}
+              {{ $tags := .GetTerms "tags" }}
+              {{ if or $categories $tags }}
+                <div class="home-card__taxonomies">
+                  {{ range $categories }}
+                    <a class="home-card__chip home-card__chip--category" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                  {{ end }}
+                  {{ range $tags }}
+                    <a class="home-card__chip" href="{{ .RelPermalink }}">#{{ .LinkTitle }}</a>
+                  {{ end }}
+                </div>
+              {{ end }}
+            </article>
+          {{ end }}
+        </div>
+      {{ else }}
+        <p class="home-articles__empty">{{ i18n "list.no_articles" | emojify }}</p>
+      {{ end }}
+    </div>
+  </section>
+
+</div>
+
+{{/* ---------- 3. 少量 JS：滚动淡入（尊重 prefers-reduced-motion） ---------- */}}
+{{ with resources.Get "js/home.js" }}
+  {{ $jsHome := . | resources.Minify | resources.Fingerprint (site.Params.fingerprintAlgorithm | default "sha512") }}
+  <script defer type="text/javascript" src="{{ $jsHome.RelPermalink }}" integrity="{{ $jsHome.Data.Integrity }}"></script>
+{{ end }}

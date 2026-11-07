@@ -1,0 +1,52 @@
+{{ define "main" }}
+
+<div class="about-page">
+
+  <aside class="about-sidebar">
+
+    {{ with resources.Get "img/avatar.png" }}
+      <img
+        class="about-avatar"
+        src="{{ .RelPermalink }}"
+        alt="皋月的头像"
+      >
+    {{ end }}
+
+    <h1 class="about-name">皋月</h1>
+
+    <p class="about-description">
+      Computer Science Student
+    </p>
+
+    <div class="about-tags">
+      <span>计科在读</span>
+      <span>Classical Music</span>
+    </div>
+
+<div class="about-links">
+
+  <a href="https://github.com/auisoyXX"
+     target="_blank"
+     rel="noopener noreferrer">
+    GitHub
+  </a>
+
+  <a href="https://space.bilibili.com/518370571"
+     target="_blank"
+     rel="noopener noreferrer">
+    哔哩哔哩
+  </a>
+
+</div>
+
+  </aside>
+
+  <div class="about-divider" aria-hidden="true"></div>
+
+  <main class="about-content">
+    {{ .Content }}
+  </main>
+
+</div>
+
+{{ end }}

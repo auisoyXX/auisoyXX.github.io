@@ -29,6 +29,19 @@ html {
   --hc-accent: rgb(var(--color-primary-600));
 }
 
+/* 整个首页的固定背景 */
+.home-custom::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("/images/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+  pointer-events: none;
+}
+
 html.dark .home-custom {
   --hc-card-bg: rgb(var(--color-neutral-900));
   --hc-card-border: rgb(var(--color-neutral-700));
@@ -59,9 +72,11 @@ html.dark .home-custom {
 }
 
 .home-hero__bg {
-  position: absolute;
+  /*position: absolute;
   inset: 0;
-  overflow: hidden;
+  overflow: hidden;*/
+  display : none;
+
 }
 
 .home-hero__bg img {
@@ -186,7 +201,26 @@ html.dark .home-custom {
    近期文章区
    -------------------------------------------------------------------------- */
 .home-articles {
+  position: relative;
   padding: 4.5rem 0 5rem;
+  background: transparent;
+}
+
+/* 单独控制毛玻璃背景的范围 */
+.home-articles::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -10rem;
+  right: -10rem;
+
+  background: rgba(43, 53, 66, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  z-index: -1;
+  pointer-events: none;
 }
 
 .home-articles__header {

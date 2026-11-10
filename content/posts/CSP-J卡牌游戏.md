@@ -1,9 +1,9 @@
 +++
 data = '2026-11-10'
-draft = true
+draft = false
 title = 'CSP-J2026纸牌游戏题解'
 categories = ['算法设计']
-tags = ['图论'，‘树上问题’，‘DP’]
+tags = ['图论','树上问题','DP']
 +++
 # 扎啤也能看懂(此处存疑)的纸牌游戏题解
 ## 题面
